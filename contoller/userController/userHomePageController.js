@@ -9,7 +9,7 @@ const getLandingPage = async (req, res) => {
 
 const getUserSignup = async (req, res) => {
   console.log("usersignuppage");
-  res.json("sign up page")
+  res.json("sign up page");
 };
 
 const postUserSignup = async (req, res) => {
@@ -24,7 +24,7 @@ const postUserSignup = async (req, res) => {
     const userExist = await userModel.findOne({ email: email });
 
     if (userExist) {
-      return res.json("User already exists");
+      return res.json({error:"User already exists"});
     }
 
     let newUser;
@@ -72,4 +72,23 @@ const postUserSignup = async (req, res) => {
   }
 };
 
-export { getLandingPage, getUserSignup, postUserSignup };
+const postUserLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const checkUser = await userModel.findOne({ email: email });
+
+    if (!checkUser) return res.status(400).json({error:"Email not found"});
+
+    let comparePasword = await bcrypt.compare(password, checkUser.password);
+
+    return checkUser && comparePasword
+      ? res.status(200).json("succesfully logged in")
+      : res.status(400).json({error:"Password is not correct"});
+  } catch (error) {
+    console.log("error in login - ", error);
+    return res.status(500).json("Internal Server Error");
+  }
+};
+
+export { getLandingPage, getUserSignup, postUserSignup, postUserLogin };

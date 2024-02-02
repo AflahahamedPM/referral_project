@@ -6,19 +6,29 @@ import {
   getLandingPage,
   getUserSignup,
   postUserSignup,
+  postUserLogin
 } from "../contoller/userController/userHomePageController.js";
 
+
+const validateRequest = (handler) => async(req,res) => {  //This validateRequest function will check whether there is validation errors during both login and signup
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      await handler(req, res);
+    };
+
+    
 router.route("/").get(getLandingPage);
 
 router
   .route("/userSignup")
   .get(getUserSignup)
-  .post(signupValidator, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    await postUserSignup(req, res);
-  });
+  .post(signupValidator,validateRequest(postUserSignup));
+
+
+router
+.route('/userLogin')
+.post(loginValidator,validateRequest(postUserLogin))
 
 export default router;
