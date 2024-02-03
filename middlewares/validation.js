@@ -1,8 +1,12 @@
 import { body } from "express-validator";
 
   const loginValidator = [
-    body("email", "email should not be empty").notEmpty(),
-    body("email", "Invalid email").isEmail(),
+    body("email")
+    .notEmpty()
+    .withMessage("email should not be empty")
+    .isEmail()
+    .withMessage("Invalid email"), 
+  
     body("password", "password should not  be empty").notEmpty(),
   ];
 
@@ -11,19 +15,24 @@ import { body } from "express-validator";
     .notEmpty()
     .withMessage('Name cannot be empty')
     .matches(/^[a-zA-Z\s]+$/)
-    .withMessage('Name should not contain numbers or special characters'),
-    body("userName", "The minimum user name length is 5 characters").isLength({min:5}),
-    body("email", "Invalid email").isEmail(),
-    body("email", "email should not be empty").notEmpty(),
+    .withMessage('Name should not contain numbers or special characters')
+    .isLength({min:5,max:20})
+    .withMessage("The user name length should be between 5-20 letters"),
+    
+    body("email")
+    .isEmail()
+    .withMessage( "Invalid email")
+    .notEmpty()
+    .withMessage("email should not be empty"),
+
     body('password')
     .notEmpty()
     .withMessage('Password cannot be empty')
     .matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/)
-    .withMessage('Password should contain at least one uppercase letter, one digit, and one special character'),
-    body(
-      "password",
-      "The minimum password length is 6 characters"
-    ).isLength({ min: 6 }),
+    .withMessage('Password should contain at least one uppercase letter, one digit, and one special character')
+    .isLength({ min: 6 })
+    .withMessage("The minimum password length is 6 characters"),
+    
     body("phoneNumber")
     .notEmpty()
     .withMessage('Phone number should not be empty')
