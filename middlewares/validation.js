@@ -29,9 +29,7 @@ const signupValidator = [
     .notEmpty()
     .withMessage("Password cannot be empty")
     .matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/)
-    .withMessage(
-      "Password should contain at least one uppercase letter, one digit, and one special character"
-    )
+    .withMessage("Password should contain at least one uppercase letter, one digit, and one special character")
     .isLength({ min: 6 })
     .withMessage("The minimum password length is 6 characters"),
 
