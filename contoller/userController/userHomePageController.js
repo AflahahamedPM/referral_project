@@ -1,6 +1,7 @@
 import userModel from "../../model/userModel.js";
 import bcrypt from "bcrypt";
 import * as referralCode from "referral-codes";
+import jwt from "jsonwebtoken";
 
 const getLandingPage = async (req, res) => {
   console.log("landing page");
@@ -24,7 +25,7 @@ const postUserSignup = async (req, res) => {
     const userExist = await userModel.findOne({ email: email });
 
     if (userExist) {
-      return res.json({error:"User already exists"});
+      return res.json({ error: "User already exists" });
     }
 
     let newUser;
@@ -43,8 +44,9 @@ const postUserSignup = async (req, res) => {
       });
 
       if (!referredByUser) {
-        return res.status(400).json({
-          error: "Check whether the referral code is correct if given, Otherwise provide a referral code",
+        return res.status(401).json({
+          error:
+            "Check whether the referral code is correct if given, Otherwise provide a referral code",
         });
       }
 
@@ -78,17 +80,50 @@ const postUserLogin = async (req, res) => {
 
     const checkUser = await userModel.findOne({ email: email });
 
-    if (!checkUser) return res.status(400).json({error:"Email not found"});
+    if (!checkUser) return res.status(401).json({ error: "Email not found" });
 
     let comparePasword = await bcrypt.compare(password, checkUser.password);
 
+    const accessToken = jwt.sign({ userId: checkUser._id },process.env.JWT_SECRET_KEY,
+      {
+        algorithm: "HS256",
+        expiresIn: "30 days",
+      }
+    );
+
     return checkUser && comparePasword
-      ? res.status(200).json("succesfully logged in")
-      : res.status(400).json({error:"Password is not correct"});
+      ? res.status(200).json({ message: "succesfully logged in", token: accessToken })
+      : res.status(401).json({ error: "Password is not correct" });
   } catch (error) {
     console.log("error in login - ", error);
     return res.status(500).json("Internal Server Error");
   }
 };
 
-export { getLandingPage, getUserSignup, postUserSignup, postUserLogin };
+const getReferralLists = async (req, res) => {
+  try {
+    const currentUser = await userModel.findById(req.userId);
+    const referralIds = currentUser.myReferrals.map((users) => {
+      return users.user;
+    });
+
+    const userArray = [];
+    for (const ids of referralIds) {
+      const userLIsts = await userModel.findOne({ _id: ids });
+      const name = userLIsts.userName;
+      userArray.push(name);
+    }
+    res.json({ referrals: userArray });
+  } catch (error) {
+    console.log("error in getting refferal lsits - ", error);
+    return res.status(500).json("Internal server error");
+  }
+};
+
+export {
+  getLandingPage,
+  getUserSignup,
+  postUserSignup,
+  postUserLogin,
+  getReferralLists,
+};
